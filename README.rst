@@ -28,6 +28,7 @@ Example usage
 Install
 =======
 ::
+
     goinstall bitbucket.org/tebeka/atexit
 
 Contact
