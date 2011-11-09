@@ -3,15 +3,26 @@
 package atexit
 
 import (
+	"fmt"
 	"os"
 )
 
 var handlers = []func(){}
 
+func runHandler(handler func()) {
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Fprintln(os.Stderr, "error: atexit handler error:", err)
+		}
+	}()
+
+	handler()
+}
+
 // Exit runs all the atexit handlers and them terminates the program using os.Exit(code)
 func Exit(code int) {
 	for _, handler := range handlers {
-		handler()
+		runHandler(handler)
 	}
 
 	os.Exit(code)
