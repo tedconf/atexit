@@ -8,11 +8,10 @@ import (
 	"os"
 )
 
-
 func TestRegister(t *testing.T) {
 	current := len(handlers)
 	Register(func() {})
-	if len(handlers) != current + 1 {
+	if len(handlers) != current+1 {
 		t.Fatalf("can't add handler")
 	}
 }
@@ -40,8 +39,12 @@ func TestHandler(t *testing.T) {
 	}
 
 	err := exec.Command("./6.out", filename, arg).Run()
-	if err.String() != "exit status 1" {
-		t.Fatalf("bad exit status (%s), should be 1", err)
+	if wmsg, ok := err.(*os.Waitmsg); ok {
+		if wmsg.ExitStatus() != 1 {
+			t.Fatalf("bad exit status (%s), should be 1", wmsg.ExitStatus())
+		}
+	} else {
+		t.Fatalf("bad exit status 0, should be 1")
 	}
 
 	data, err := ioutil.ReadFile(filename)
