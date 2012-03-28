@@ -1,6 +1,25 @@
-// Simple atexit implementation. Add handlers using Register, you must call
-// atexit.Exit to get the handler invoked (and then terminate the program).
-// This package also provides replacements to log.Fatal, log.Fatalf and log.Fatalln
+/* Simple atexit implementation. Add handlers using Register, you must call
+atexit.Exit to get the handler invoked (and then terminate the program).
+
+This package also provides replacements to log.Fatal, log.Fatalf and log.Fatalln.
+
+Example:
+    package main
+
+    import (
+        "atexit"
+        "fmt"
+    )
+
+    func handler() {
+        fmt.Println("Exiting")
+    }
+
+    func main() {
+            atexit.Register(handler)
+            atexit.Exit(0)
+    }
+*/
 package atexit
 
 import (

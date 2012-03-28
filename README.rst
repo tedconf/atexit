@@ -3,7 +3,7 @@ About
 Simple `atexit` implementation for Go_.
 
 Note that you *have* to call `atexit.Exit` and not `os.Exit` to terminate your
-program (that is, if you want the atexit handlers to execute).
+program (that is, if you want the `atexit` handlers to execute).
 
 Example usage
 =============
