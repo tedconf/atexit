@@ -1,11 +1,11 @@
 package atexit
 
 import (
-	"exec"
-	"testing"
 	"io/ioutil"
-	"time"
 	"os"
+	"os/exec"
+	"testing"
+	"time"
 )
 
 func TestRegister(t *testing.T) {
@@ -16,43 +16,71 @@ func TestRegister(t *testing.T) {
 	}
 }
 
-func exists(filename string) bool {
-	_, err := os.Stat(filename)
-	return err == nil
-}
-
 func TestHandler(t *testing.T) {
-	filename := "/tmp/testprog.out"
-	arg := time.UTC().String()
-
-	os.Remove(filename)
-	if exists(filename) {
-		t.Fatalf("can't delete %s", filename)
+	prog := "/tmp/testprog"
+	gofile := prog + ".go"
+	if err := ioutil.WriteFile(gofile, testprog, 0666); err != nil {
+		t.Fatalf("can't create go file")
 	}
 
-	if err := exec.Command("6g", "testprog.go").Run(); err != nil {
-		t.Fatalf("can't compile")
-	}
-
-	if err := exec.Command("6l", "testprog.6").Run(); err != nil {
-		t.Fatalf("can't link\n")
-	}
-
-	err := exec.Command("./6.out", filename, arg).Run()
-	if wmsg, ok := err.(*os.Waitmsg); ok {
-		if wmsg.ExitStatus() != 1 {
-			t.Fatalf("bad exit status (%d), should be 1", wmsg.ExitStatus())
+	outfile := prog + ".out"
+	if err := os.Remove(outfile); err != nil {
+		if !os.IsNotExist(err) {
+			t.Fatalf("can't delete %s", outfile)
 		}
-	} else {
-		t.Fatalf("bad exit status 0, should be 1")
 	}
 
-	data, err := ioutil.ReadFile(filename)
+	if err := exec.Command("go", "build", "-o", prog, gofile).Run(); err != nil {
+		t.Fatalf("can't build")
+	}
+
+	arg := time.Now().UTC().String()
+	err := exec.Command("/tmp/testprog", outfile, arg).Run()
+	if err == nil {
+		t.Fatalf("completed normally, should have failed")
+	}
+
+	data, err := ioutil.ReadFile(outfile)
 	if err != nil {
-		t.Fatalf("can't read output file %s", filename)
+		t.Fatalf("can't read output file %s", outfile)
 	}
 
 	if string(data) != arg {
 		t.Fatalf("bad data")
 	}
 }
+
+var testprog = []byte(`
+// Test program for atexit, gets output file and data as arguments and writes
+// data to output file in atexit handler.
+package main
+
+import (
+	"atexit"
+	"flag"
+	"fmt"
+	"io/ioutil"
+)
+
+var outfile = ""
+var data = ""
+
+func handler() {
+	ioutil.WriteFile(outfile, []byte(data), 0666)
+}
+
+func badHandler() {
+	n := 0
+	fmt.Println(1/n)
+}
+
+func main() {
+	flag.Parse()
+	outfile = flag.Arg(0)
+	data = flag.Arg(1)
+
+	atexit.Register(handler)
+	atexit.Register(badHandler)
+	atexit.Exit(1)
+}
+`)
