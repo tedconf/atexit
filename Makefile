@@ -1,8 +1,16 @@
-include $(GOROOT)/src/Make.inc
+export GOPATH := $(shell dirname $(shell dirname $(PWD)))
+PACKAGE := atexit
 
-TARG=atexit
+all:
+	go build $(PACKAGE)
 
-GOFILES= \
-	atexit.go
+test:
+	go test -v $(PACKAGE)
 
-include $(GOROOT)/src/Make.pkg
+fix:
+	go fix $(PACKAGE)
+
+install:
+	go install $(PACKAGE)
+
+.PHONY: all test install fix
