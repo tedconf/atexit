@@ -17,25 +17,18 @@ func TestRegister(t *testing.T) {
 }
 
 func TestHandler(t *testing.T) {
-	prog := "/tmp/testprog"
-	gofile := prog + ".go"
+	gofile := "/tmp/testprog.go"
 	if err := ioutil.WriteFile(gofile, testprog, 0666); err != nil {
 		t.Fatalf("can't create go file")
 	}
 
-	outfile := prog + ".out"
-	if err := os.Remove(outfile); err != nil {
-		if !os.IsNotExist(err) {
-			t.Fatalf("can't delete %s", outfile)
-		}
+	if err := os.Setenv("GOPATH", "../.."); err != nil {
+		t.Fatalf("can't set GOPATH environment variable")
 	}
 
-	if err := exec.Command("go", "build", "-o", prog, gofile).Run(); err != nil {
-		t.Fatalf("can't build")
-	}
-
+	outfile := "/tmp/testprog.out"
 	arg := time.Now().UTC().String()
-	err := exec.Command("/tmp/testprog", outfile, arg).Run()
+	err := exec.Command("go", "run", gofile, outfile, arg).Run()
 	if err == nil {
 		t.Fatalf("completed normally, should have failed")
 	}
