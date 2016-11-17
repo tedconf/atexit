@@ -1,3 +1,7 @@
+Git Mirror of https://bitbucket.org/tebeka/atexit
+
+========================
+
 About
 =====
 Simple `atexit` implementation for Go_.
